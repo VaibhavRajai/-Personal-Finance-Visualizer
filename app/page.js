@@ -1,3 +1,4 @@
+"use client"
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,14 @@ import {
 } from 'lucide-react';
 
 const Homepage = () => {
+
+  const navigate=(screen)=>{
+    switch(screen){
+      case 'track':
+        window.location.href='/track';
+        break;
+    }
+  }
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="bg-gray-900 border-b border-gray-800">
@@ -36,8 +45,8 @@ const Homepage = () => {
             Manage your expenses efficiently with our comprehensive tools
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer">
+        <div  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+          <Card onClick={()=>{navigate('track')}} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer" >
             <CardHeader className="pb-4">
               <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <TrendingUp className="w-8 h-8 text-white" />
