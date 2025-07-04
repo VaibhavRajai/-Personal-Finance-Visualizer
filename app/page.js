@@ -80,7 +80,7 @@ const Homepage = () => {
               </div>
               <CardTitle className="text-white text-xl mb-2">Budgeting</CardTitle>
               <CardDescription className="text-gray-400 text-base leading-relaxed">
-                Set financial goals and create custom budgets. Get alerts when you're close to your spending limits.
+                Set financial goals and create custom budgets. Get alerts when you are close to your spending limits.
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
