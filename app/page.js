@@ -13,7 +13,7 @@ import {
   MessageSquare,
   Bot
 } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 const Homepage = () => {
 const router=useRouter()
   const navigate=(screen)=>{

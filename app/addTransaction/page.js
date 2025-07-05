@@ -34,7 +34,7 @@ import {
   X,
   AlertCircle
 } from 'lucide-react';
-import { useRouter } from 'react';
+import { useRouter } from 'next/navigation';
 const SuccessModal = ({ isOpen, onClose, transactionType }) => {
   if (!isOpen) return null;
 

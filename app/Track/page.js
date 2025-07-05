@@ -20,7 +20,7 @@ import {
   X,
   Save
 } from 'lucide-react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 const TransactionsPage = () => {
   const router=useRouter()
   const [searchTerm, setSearchTerm] = useState('');
