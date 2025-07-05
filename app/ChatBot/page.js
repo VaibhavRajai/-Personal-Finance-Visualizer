@@ -30,7 +30,7 @@ export default function FinancialChatbot() {
     setMessages([
       {
         type: 'bot',
-        content: "Hello! I'm your AI Financial Advisor. I'm here to help you with budgeting, saving strategies, investment advice, expense management, and all things related to personal finance. What financial topic would you like to discuss today?",
+        content: "Hello! I am your AI Financial Advisor. I'm here to help you with budgeting, saving strategies, investment advice, expense management, and all things related to personal finance. What financial topic would you like to discuss today?",
         timestamp: new Date()
       }
     ]);
