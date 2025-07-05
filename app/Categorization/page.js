@@ -1,5 +1,4 @@
 "use client"
-"use client"
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,16 +16,20 @@ import {
   Calendar,
   RefreshCw,
   Eye,
-  EyeOff
+  EyeOff,
+  Download
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [showAmounts, setShowAmounts] = useState(true);
+  const [isDownloading, setIsDownloading] = useState(false);
+  
   const COLORS = [
     '#10B981', '#3B82F6', '#EF4444', '#8B5CF6', 
     '#F59E0B', '#EC4899', '#6366F1', '#06B6D4', 
@@ -47,6 +50,190 @@ const Dashboard = () => {
       "Income": DollarSign
     };
     return iconMap[category] || CreditCard;
+  };
+  const exportToPDF = async () => {
+    if (transactions.length === 0) {
+      alert('No transactions to export');
+      return;
+    }
+    setIsDownloading(true);
+    try {
+      const jsPDFScript = document.createElement('script');
+      jsPDFScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      
+      const autoTableScript = document.createElement('script');
+      autoTableScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js';
+      await new Promise((resolve, reject) => {
+        let scriptsLoaded = 0;
+        const totalScripts = 2;
+        const onScriptLoad = () => {
+          scriptsLoaded++;
+          if (scriptsLoaded === totalScripts) {
+            resolve();
+          }
+        };
+        jsPDFScript.onload = onScriptLoad;
+        jsPDFScript.onerror = reject;
+        autoTableScript.onload = onScriptLoad;
+        autoTableScript.onerror = reject;
+        
+        document.head.appendChild(jsPDFScript);
+        document.head.appendChild(autoTableScript);
+      });
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Financial Dashboard Report", 14, 22);
+      doc.setFontSize(12);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 32);
+      doc.text(`Total Transactions: ${transactions.length}`, 14, 40);
+      const totalIncome = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const totalExpenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      const netBalance = totalIncome - totalExpenses;  
+      doc.setFontSize(14);
+      doc.setTextColor(40, 40, 40);
+      doc.text("Financial Summary:", 14, 55);
+      doc.setFontSize(12);
+      doc.setTextColor(34, 197, 94);
+      doc.text(`Total Income: ${formatCurrency(totalIncome)}`, 14, 65);
+      doc.setTextColor(239, 68, 68); 
+      doc.text(`Total Expenses: ${formatCurrency(totalExpenses)}`, 14, 73);
+      
+      doc.setTextColor(netBalance >= 0 ? 34 : 239, netBalance >= 0 ? 197 : 68, netBalance >= 0 ? 94 : 68);
+      doc.text(`Net Balance: ${formatCurrency(netBalance)}`, 14, 81);
+      const tableColumn = ["Title", "Amount", "Category", "Type", "Date"];
+      const tableRows = [];
+      const sortedTransactions = [...transactions].sort((a, b) => 
+        new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00'))
+      );
+      
+      sortedTransactions.forEach((transaction) => {
+        const transactionData = [
+          transaction.title || 'N/A',
+          formatCurrency(Math.abs(transaction.amount)),
+          transaction.category || 'N/A',
+          transaction.type.toUpperCase(),
+          formatDate(transaction.date)
+        ];
+        tableRows.push(transactionData);
+      });
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 90,
+        theme: 'striped',
+        headStyles: {
+          fillColor: [34, 197, 94], 
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: 'bold'
+        },
+        bodyStyles: {
+          fontSize: 9,
+          textColor: [50, 50, 50]
+        },
+        columnStyles: {
+          1: { halign: 'right' }, 
+          3: { 
+            cellWidth: 20,
+            fillColor: function(rowIndex, columnIndex, cellValue) {
+              return cellValue === 'INCOME' ? [34, 197, 94, 0.1] : [239, 68, 68, 0.1];
+            },
+            textColor: function(rowIndex, columnIndex, cellValue) {
+              return cellValue === 'INCOME' ? [34, 197, 94] : [239, 68, 68];
+            }
+          }
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        margin: { top: 90 }
+      });
+      const finalY = doc.lastAutoTable.finalY || 90;
+      
+      if (finalY < 200) { 
+        const categoryBreakdown = transactions
+          .filter(t => t.type === 'expense')
+          .reduce((acc, t) => {
+            const category = t.category || 'Other';
+            acc[category] = (acc[category] || 0) + Math.abs(t.amount);
+            return acc;
+          }, {});
+        
+        const categoryData = Object.entries(categoryBreakdown)
+          .map(([category, amount]) => ({
+            name: category,
+            value: amount,
+            percentage: ((amount / totalExpenses) * 100).toFixed(1)
+          }))
+          .sort((a, b) => b.value - a.value)
+          .slice(0, 5); 
+        if (categoryData.length > 0) {
+          doc.setFontSize(14);
+          doc.setTextColor(40, 40, 40);
+          doc.text("Top Spending Categories:", 14, finalY + 15);
+          
+          const categoryTableColumn = ["Category", "Amount", "% of Total"];
+          const categoryTableRows = [];
+          
+          categoryData.forEach((category) => {
+            categoryTableRows.push([
+              category.name,
+              formatCurrency(category.value),
+              category.percentage + '%'
+            ]);
+          });
+          
+          doc.autoTable({
+            head: [categoryTableColumn],
+            body: categoryTableRows,
+            startY: finalY + 20,
+            theme: 'striped',
+            headStyles: {
+              fillColor: [59, 130, 246], 
+              textColor: [255, 255, 255],
+              fontSize: 10,
+              fontStyle: 'bold'
+            },
+            bodyStyles: {
+              fontSize: 9,
+              textColor: [50, 50, 50]
+            },
+            columnStyles: {
+              1: { halign: 'right' }, 
+              2: { halign: 'right' }  
+            },
+            alternateRowStyles: {
+              fillColor: [245, 245, 245]
+            }
+          });
+        }
+      }
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Generated by Financial Dashboard", 14, doc.internal.pageSize.height - 10);
+        doc.text(`Page ${i} of ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+      }
+      const fileName = `Financial_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+      doc.save(fileName);
+      document.head.removeChild(jsPDFScript);
+      document.head.removeChild(autoTableScript);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const fetchTransactions = async () => {
@@ -81,7 +268,7 @@ const Dashboard = () => {
         .map(transaction => ({
           id: transaction.id || Math.random().toString(36).substr(2, 9),
           title: transaction.title || transaction.description || 'Untitled Transaction',
-          category: transaction.cateogry || 'Other',
+          category: transaction.category || transaction.cateogry || 'Other', // Handle typo in API
           amount: parseFloat(transaction.amount) || 0,
           date: transaction.date || new Date().toISOString().split('T')[0],
           time: transaction.time || '00:00',
@@ -115,6 +302,7 @@ const Dashboard = () => {
       </div>
     );
   }
+
   const totalIncome = transactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + Math.abs(t.amount), 0);
@@ -136,12 +324,14 @@ const Dashboard = () => {
     .map(([category, amount]) => ({
       name: category,
       value: amount,
-      percentage: ((amount / totalExpenses) * 100).toFixed(1)
+      percentage: totalExpenses > 0 ? ((amount / totalExpenses) * 100).toFixed(1) : '0'
     }))
     .sort((a, b) => b.value - a.value);
+
   const recentTransactions = transactions
-    .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))
+    .sort((a, b) => new Date(b.date + ' ' + (b.time || '00:00')) - new Date(a.date + ' ' + (a.time || '00:00')))
     .slice(0, 5);
+
   const monthlyData = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
@@ -162,10 +352,18 @@ const Dashboard = () => {
     }).format(amount);
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR'
+    }).format(amount);
+  };
+
   const formatDate = (dateString) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', { 
+        year: 'numeric',
         month: 'short', 
         day: 'numeric' 
       });
@@ -196,6 +394,44 @@ const Dashboard = () => {
             <div className="flex items-center space-x-2">
               <h1 className="text-lg sm:text-xl font-bold text-green-400">Financial Dashboard</h1>
             </div>
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={fetchTransactions}
+                disabled={isLoading}
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                {isLoading ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+              </Button>
+              <Button
+                onClick={() => setShowAmounts(!showAmounts)}
+                variant="outline"
+                className="border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                {showAmounts ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </Button>
+              <Button
+                onClick={exportToPDF}
+                disabled={isDownloading || transactions.length === 0}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {isDownloading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Export PDF
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -203,13 +439,33 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-red-500 rounded-full"></div>
-              <span className="text-red-400 font-medium">Error loading data</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                <span className="text-red-400 font-medium">Error loading data</span>
+              </div>
+              <Button
+                onClick={fetchTransactions}
+                variant="outline"
+                size="sm"
+                className="border-red-600 text-red-400 hover:bg-red-900/50"
+              >
+                Retry
+              </Button>
             </div>
             <p className="text-red-300 text-sm mt-2">{error}</p>
           </div>
         )}
+
+        {isLoading && (
+          <div className="mb-6 p-4 bg-blue-900/50 border border-blue-700 rounded-lg">
+            <div className="flex items-center space-x-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+              <span className="text-blue-400 font-medium">Loading transactions...</span>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6">
@@ -305,6 +561,7 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
+
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white">Monthly Spending Trend</CardTitle>
@@ -337,6 +594,7 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
         <div className="mb-8">
           <h3 className="text-xl font-bold text-white mb-4">Top Spending Categories</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -366,6 +624,7 @@ const Dashboard = () => {
             })}
           </div>
         </div>
+
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white">Recent Transactions</CardTitle>
