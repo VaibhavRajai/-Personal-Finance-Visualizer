@@ -20,8 +20,9 @@ import {
   X,
   Save
 } from 'lucide-react';
-
+import { useRouter } from 'next/router';
 const TransactionsPage = () => {
+  const router=useRouter()
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -41,7 +42,6 @@ const TransactionsPage = () => {
     setMounted(true);
     fetchTransactions();
   }, []);
-
   const fetchTransactions = async () => {
     try {
       setIsLoadingTransactions(true);
@@ -52,11 +52,8 @@ const TransactionsPage = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
       const data = await response.json();
-      console.log('API Response:', data); // Debug log
-      
-      // Handle different response formats
+      console.log('API Response:', data); 
       let transactionsArray = [];
       if (Array.isArray(data)) {
         transactionsArray = data;
@@ -65,7 +62,6 @@ const TransactionsPage = () => {
       } else if (data && Array.isArray(data.data)) {
         transactionsArray = data.data;
       } else if (data && data.message) {
-        // Handle case where API returns a message (like "No transactions found")
         console.log('API Message:', data.message);
         setTransactions([]);
         return;
@@ -74,9 +70,8 @@ const TransactionsPage = () => {
         throw new Error('Unexpected data format from API');
       }
       const processedTransactions = transactionsArray
-        .filter(transaction => transaction && typeof transaction === 'object') // Filter out null/undefined items
+        .filter(transaction => transaction && typeof transaction === 'object')
         .map(transaction => {
-          // Ensure all required fields exist with defaults
           const processedTransaction = {
             id: transaction.id || Math.random().toString(36).substr(2, 9),
             title: transaction.title || transaction.description || 'Untitled Transaction',
@@ -84,7 +79,7 @@ const TransactionsPage = () => {
             amount: parseFloat(transaction.amount) || 0,
             date: transaction.date || new Date().toISOString().split('T')[0],
             time: transaction.time || '00:00',
-            ...transaction // Keep any other properties
+            ...transaction
           };
           
           return {
@@ -157,13 +152,13 @@ const TransactionsPage = () => {
 
   const handleAddTransaction = () => {
     if (mounted) {
-      window.location.href = '/addTransaction';
+      router.push( '/addTransaction');
     }
   };
 
   const handleLastMonth = () => {
     if (mounted) {
-      window.location.href = '/monthly';
+      router.push('/monthly');
     }
   };
 
@@ -339,8 +334,6 @@ const TransactionsPage = () => {
             </Button>
           </div>
         </div>
-
-        {/* Error Display */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
             <div className="flex items-center space-x-2">
@@ -356,8 +349,6 @@ const TransactionsPage = () => {
             </Button>
           </div>
         )}
-
-        {/* Debug Info */}
         {!isLoadingTransactions && !error && (
           <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
             <p className="text-blue-300 text-sm">
@@ -453,8 +444,6 @@ const TransactionsPage = () => {
           </div>
         )}
       </div>
-
-      {/* Edit Modal */}
       {editModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">

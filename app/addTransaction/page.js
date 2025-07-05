@@ -34,7 +34,7 @@ import {
   X,
   AlertCircle
 } from 'lucide-react';
-
+import { useRouter } from 'react';
 const SuccessModal = ({ isOpen, onClose, transactionType }) => {
   if (!isOpen) return null;
 
@@ -112,6 +112,7 @@ const ErrorModal = ({ isOpen, onClose, error }) => {
 };
 
 const AddTransactionPage = () => {
+  const router=useRouter()
   const generateRandomId = () => {
     return Math.floor(Math.random() * 1000000000); 
   };
@@ -173,7 +174,7 @@ const AddTransactionPage = () => {
   };
 
   const handleGoBack = () => {
-    window.location.href='/track'
+    router.push('/track')
   };
 
   const handleSubmit = async (e) => {
@@ -200,29 +201,21 @@ const AddTransactionPage = () => {
         },
         body: JSON.stringify(transactionData)
       });
-
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
-      // Try to get response text for debugging
       const responseText = await response.text();
       console.log('Response text:', responseText);
 
       if (!response.ok) {
         let errorMessage = `HTTP error! status: ${response.status}`;
-        
-        // Try to parse error response
         try {
           const errorData = JSON.parse(responseText);
           errorMessage = errorData.message || errorData.error || errorMessage;
         } catch (parseError) {
           console.log('Could not parse error response as JSON');
         }
-        
         throw new Error(errorMessage);
       }
-
-      // Try to parse success response
       let result;
       try {
         result = JSON.parse(responseText);
@@ -232,11 +225,7 @@ const AddTransactionPage = () => {
       }
 
       console.log('Transaction added successfully:', result);
-      
-      // Show success modal
       setShowSuccessModal(true);
-      
-      // Reset form
       setFormData({
         amount: '',
         date: getTodayDate(),
@@ -266,8 +255,6 @@ const AddTransactionPage = () => {
 
   const isFormValid = formData.amount && formData.date && formData.description && formData.category;
   const today = mounted ? getTodayDate() : '';
-
-  // Don't render until mounted to avoid hydration mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
