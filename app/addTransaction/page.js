@@ -193,7 +193,7 @@ const AddTransactionPage = () => {
         amount: parseFloat(formData.amount),
         date: formData.date,
         description: formData.description.trim(),
-        category: formData.category, // Fixed: was 'cateogry' before
+        cateogry: formData.category, 
         type: formData.type
       };
       
