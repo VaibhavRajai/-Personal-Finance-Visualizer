@@ -325,7 +325,7 @@ Please provide helpful, accurate financial advice while being encouraging and su
               </button>
             </div>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              I am specialized in financial advice. Ask me about money management, budgeting, investing, and more!
+              I am specialized in financial advice. Ask me about money management, budgeting, investing,finance, and more!
             </p>
           </div>
         </div>
