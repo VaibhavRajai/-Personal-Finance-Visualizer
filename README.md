@@ -29,10 +29,10 @@
 | Frontend   | Next.js                             |
 | Styling    | Tailwind CSS                        |
 | UI Library | shadcn/ui                           |
-| Charts     | Chart.js / react-chartjs-2          |
+| Charts     |  recharts                           |
 | Backend    | Express.js + Node.js                |
 | Database   | MongoDB with Mongoose ODM           |
-| PDF Export | pdf-lib / html2pdf.js (as applicable) |
+| PDF Export | js-pdf |
 
 ---
 
