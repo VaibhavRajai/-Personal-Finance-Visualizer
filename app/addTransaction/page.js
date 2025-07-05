@@ -35,6 +35,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 const SuccessModal = ({ isOpen, onClose, transactionType }) => {
   if (!isOpen) return null;
 
@@ -112,10 +113,12 @@ const ErrorModal = ({ isOpen, onClose, error }) => {
 };
 
 const AddTransactionPage = () => {
-  const router=useRouter()
+  const router = useRouter();
+  
   const generateRandomId = () => {
     return Math.floor(Math.random() * 1000000000); 
   };
+  
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
@@ -133,6 +136,7 @@ const AddTransactionPage = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [error, setError] = useState('');
+  
   useEffect(() => {
     setMounted(true);
     setFormData(prev => ({
@@ -174,7 +178,7 @@ const AddTransactionPage = () => {
   };
 
   const handleGoBack = () => {
-    router.push('/track')
+    router.push('/track');
   };
 
   const handleSubmit = async (e) => {
@@ -189,10 +193,12 @@ const AddTransactionPage = () => {
         amount: parseFloat(formData.amount),
         date: formData.date,
         description: formData.description.trim(),
-        cateogry: formData.category, 
+        category: formData.category, // Fixed: was 'cateogry' before
         type: formData.type
       };
+      
       console.log('Sending transaction data:', transactionData);
+      
       const response = await fetch('https://finance-visualizer-backend.vercel.app/api/addTransaction', {
         method: 'POST',
         headers: {
@@ -201,8 +207,10 @@ const AddTransactionPage = () => {
         },
         body: JSON.stringify(transactionData)
       });
+      
       console.log('Response status:', response.status);
       console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      
       const responseText = await response.text();
       console.log('Response text:', responseText);
 
@@ -216,6 +224,7 @@ const AddTransactionPage = () => {
         }
         throw new Error(errorMessage);
       }
+      
       let result;
       try {
         result = JSON.parse(responseText);
@@ -255,6 +264,7 @@ const AddTransactionPage = () => {
 
   const isFormValid = formData.amount && formData.date && formData.description && formData.category;
   const today = mounted ? getTodayDate() : '';
+  
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -281,19 +291,21 @@ const AddTransactionPage = () => {
           </div>
         </div>
       </div>
+      
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white text-2xl">New Transaction</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
                   Transaction Type
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <Button
+                    type="button"
                     onClick={() => handleInputChange('type', 'expense')}
                     variant={formData.type === 'expense' ? 'default' : 'outline'}
                     className={`h-12 ${
@@ -306,6 +318,7 @@ const AddTransactionPage = () => {
                     Expense
                   </Button>
                   <Button
+                    type="button"
                     onClick={() => handleInputChange('type', 'income')}
                     variant={formData.type === 'income' ? 'default' : 'outline'}
                     className={`h-12 ${
@@ -319,6 +332,7 @@ const AddTransactionPage = () => {
                   </Button>
                 </div>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Amount
@@ -337,6 +351,7 @@ const AddTransactionPage = () => {
                   />
                 </div>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Date
@@ -353,6 +368,7 @@ const AddTransactionPage = () => {
                   />
                 </div>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Description
@@ -369,6 +385,7 @@ const AddTransactionPage = () => {
                   />
                 </div>
               </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
                   Category
@@ -397,9 +414,10 @@ const AddTransactionPage = () => {
                   })}
                 </div>
               </div>
+              
               <div className="pt-6 border-t border-gray-700">
                 <Button
-                  onClick={handleSubmit}
+                  type="submit"
                   disabled={!isFormValid || isSubmitting}
                   className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
                 >
@@ -416,10 +434,11 @@ const AddTransactionPage = () => {
                   )}
                 </Button>
               </div>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </div>
+      
       <SuccessModal 
         isOpen={showSuccessModal} 
         onClose={handleModalClose} 

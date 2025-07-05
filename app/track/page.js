@@ -139,7 +139,7 @@ const TransactionsPage = () => {
           const processedTransaction = {
             id: transaction.id || Math.random().toString(36).substr(2, 9),
             title: transaction.title || transaction.description || 'Untitled Transaction',
-            category: transaction.category || 'Other',
+            category: transaction.cateogry || 'Other',
             amount: parseFloat(transaction.amount) || 0,
             date: transaction.date || new Date().toISOString().split('T')[0],
             time: transaction.time || '00:00',
