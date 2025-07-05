@@ -31,7 +31,8 @@ import {
   Stethoscope,
   Fuel,
   CheckCircle,
-  X
+  X,
+  AlertCircle
 } from 'lucide-react';
 
 const SuccessModal = ({ isOpen, onClose, transactionType }) => {
@@ -72,21 +73,72 @@ const SuccessModal = ({ isOpen, onClose, transactionType }) => {
   );
 };
 
+const ErrorModal = ({ isOpen, onClose, error }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-2xl max-w-md w-full mx-4 animate-in fade-in zoom-in duration-300">
+        <div className="p-6 text-center">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-white" />
+          </div>
+          
+          <h3 className="text-xl font-bold text-white mb-2">
+            Error Adding Transaction
+          </h3>
+          
+          <p className="text-gray-300 mb-6">
+            {error || 'Something went wrong. Please try again.'}
+          </p>
+          
+          <Button
+            onClick={onClose}
+            className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-xl transition-all duration-300"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AddTransactionPage = () => {
+  const generateRandomId = () => {
+    return Math.floor(Math.random() * 1000000000); 
+  };
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   };
 
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
-    date: getTodayDate(), 
+    date: '',
     description: '',
     category: '',
     type: 'expense'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    setMounted(true);
+    setFormData(prev => ({
+      ...prev,
+      date: getTodayDate()
+    }));
+  }, []);
 
   const categories = [
     { id: 'food', name: 'Food & Dining', icon: Utensils, color: 'bg-orange-500' },
@@ -121,18 +173,70 @@ const AddTransactionPage = () => {
   };
 
   const handleGoBack = () => {
-    if (typeof window !== 'undefined') {
-      window.history.back();
-    }
+    window.location.href='/track'
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      console.log('Transaction submitted:', formData);
-      setIsSubmitting(false);
+    setError('');
+
+    try {
+      const transactionId = generateRandomId();
+      const transactionData = {
+        id: transactionId,
+        amount: parseFloat(formData.amount),
+        date: formData.date,
+        description: formData.description.trim(),
+        cateogry: formData.category, 
+        type: formData.type
+      };
+      console.log('Sending transaction data:', transactionData);
+      const response = await fetch('https://finance-visualizer-backend.vercel.app/api/addTransaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(transactionData)
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Try to get response text for debugging
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        
+        // Try to parse error response
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch (parseError) {
+          console.log('Could not parse error response as JSON');
+        }
+        
+        throw new Error(errorMessage);
+      }
+
+      // Try to parse success response
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.log('Could not parse success response as JSON, but request succeeded');
+        result = { success: true };
+      }
+
+      console.log('Transaction added successfully:', result);
+      
+      // Show success modal
       setShowSuccessModal(true);
+      
+      // Reset form
       setFormData({
         amount: '',
         date: getTodayDate(),
@@ -140,7 +244,14 @@ const AddTransactionPage = () => {
         category: '',
         type: 'expense'
       });
-    }, 1500);
+
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      setError(error.message || 'Failed to add transaction. Please try again.');
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleModalClose = () => {
@@ -148,8 +259,22 @@ const AddTransactionPage = () => {
     handleGoBack();
   };
 
+  const handleErrorModalClose = () => {
+    setShowErrorModal(false);
+    setError('');
+  };
+
   const isFormValid = formData.amount && formData.date && formData.description && formData.category;
-  const today = getTodayDate();
+  const today = mounted ? getTodayDate() : '';
+
+  // Don't render until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -312,6 +437,11 @@ const AddTransactionPage = () => {
         isOpen={showSuccessModal} 
         onClose={handleModalClose} 
         transactionType={formData.type}
+      />
+      <ErrorModal 
+        isOpen={showErrorModal} 
+        onClose={handleErrorModalClose} 
+        error={error}
       />
     </div>
   );
