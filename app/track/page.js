@@ -18,12 +18,15 @@ import {
   Edit,
   Trash2,
   X,
-  Save
+  Save,
+  TrendingUp,
+  TrendingDown,
+  ArrowUpCircle,
+  ArrowDownCircle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-
 const TransactionsPage = () => {
-  const router = useRouter();
+  const router=useRouter()
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -33,7 +36,8 @@ const TransactionsPage = () => {
     category: '',
     amount: '',
     date: '',
-    time: ''
+    time: '',
+    type: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
@@ -73,6 +77,20 @@ const TransactionsPage = () => {
       "Other": "bg-gray-500"
     };
     return colorMap[category] || "bg-gray-500";
+  };
+  const getIconForTransaction = (transaction) => {
+    if (transaction.type === 'income') {
+      return ArrowUpCircle;
+    } else {
+      return ArrowDownCircle;
+    }
+  };
+  const getColorForTransaction = (transaction) => {
+    if (transaction.type === 'income') {
+      return "bg-green-500";
+    } else {
+      return "bg-red-500";
+    }
   };
 
   const categories = [
@@ -125,13 +143,14 @@ const TransactionsPage = () => {
             amount: parseFloat(transaction.amount) || 0,
             date: transaction.date || new Date().toISOString().split('T')[0],
             time: transaction.time || '00:00',
+            type: transaction.type || (transaction.amount > 0 ? 'income' : 'expense'),
             ...transaction
           };
           
           return {
             ...processedTransaction,
-            icon: getIconForCategory(processedTransaction.category),
-            color: getColorForCategory(processedTransaction.category)
+            icon: getIconForTransaction(processedTransaction),
+            color: getColorForTransaction(processedTransaction)
           };
         });
       
@@ -151,8 +170,6 @@ const TransactionsPage = () => {
     setMounted(true);
     fetchTransactions();
   }, []);
-
-  // Early return if not mounted to prevent hydration issues
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -164,16 +181,16 @@ const TransactionsPage = () => {
     );
   }
 
-
-
   const handleAddTransaction = () => {
     if (!mounted) return;
     router.push('/addTransaction');
+    console.log('Navigate to add transaction page');
   };
 
   const handleLastMonth = () => {
     if (!mounted) return;
     router.push('/monthly');
+    console.log('Navigate to monthly page');
   };
 
   const handleEditTransaction = (transaction) => {
@@ -183,7 +200,8 @@ const TransactionsPage = () => {
       category: transaction.category || '',
       amount: Math.abs(transaction.amount || 0).toString(),
       date: transaction.date || '',
-      time: transaction.time || ''
+      time: transaction.time || '',
+      type: transaction.type || (transaction.amount > 0 ? 'income' : 'expense')
     });
     setEditModal({ isOpen: true, transaction });
   };
@@ -196,7 +214,8 @@ const TransactionsPage = () => {
       category: '',
       amount: '',
       date: '',
-      time: ''
+      time: '',
+      type: ''
     });
   };
 
@@ -224,7 +243,8 @@ const TransactionsPage = () => {
           category: editForm.category,
           amount: parseFloat(editForm.amount),
           date: editForm.date,
-          time: editForm.time
+          time: editForm.time,
+          type: editForm.type
         })
       });
 
@@ -300,6 +320,25 @@ const TransactionsPage = () => {
     }
   };
 
+  const getAmountDisplay = (transaction) => {
+    const amount = Math.abs(transaction.amount || 0);
+    const formattedAmount = formatAmount(amount);
+    
+    if (transaction.type === 'income') {
+      return {
+        sign: '+',
+        color: 'text-green-400',
+        amount: formattedAmount
+      };
+    } else {
+      return {
+        sign: '-',
+        color: 'text-red-400',
+        amount: formattedAmount
+      };
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="bg-gray-900 border-b border-gray-800">
@@ -344,13 +383,6 @@ const TransactionsPage = () => {
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
-            {/* <Button
-              variant="outline"
-              className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 w-full sm:w-auto"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button> */}
           </div>
         </div>
         
@@ -387,6 +419,8 @@ const TransactionsPage = () => {
           ) : (
             filteredTransactions.map((transaction) => {
               const IconComponent = transaction.icon;
+              const amountDisplay = getAmountDisplay(transaction);
+              
               return (
                 <Card key={transaction.id} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group">
                   <CardContent className="p-4 sm:p-6">
@@ -397,13 +431,22 @@ const TransactionsPage = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-white font-semibold text-base sm:text-lg truncate">{transaction.title}</h3>
-                          <p className="text-gray-400 text-xs sm:text-sm truncate">{transaction.category}</p>
+                          <div className="flex items-center space-x-2">
+                            <p className="text-gray-400 text-xs sm:text-sm truncate">{transaction.category}</p>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              transaction.type === 'income' 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-red-500/20 text-red-400'
+                            }`}>
+                              {transaction.type}
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between sm:justify-end space-x-3 sm:space-x-4">
                         <div className="text-left sm:text-right">
-                          <div className={`font-bold text-base sm:text-lg ${transaction.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                            {transaction.amount > 0 ? '+' : '-'}{formatAmount(transaction.amount)}
+                          <div className={`font-bold text-base sm:text-lg ${amountDisplay.color}`}>
+                            {amountDisplay.sign}{amountDisplay.amount}
                           </div>
                           <div className="text-gray-400 text-xs sm:text-sm">
                             {formatDate(transaction.date)} • {transaction.time}
@@ -493,6 +536,21 @@ const TransactionsPage = () => {
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter transaction title"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Transaction Type
+                </label>
+                <select
+                  value={editForm.type}
+                  onChange={(e) => handleFormChange('type', e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                >
+                  <option value="">Select type</option>
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                </select>
               </div>
 
               <div>
