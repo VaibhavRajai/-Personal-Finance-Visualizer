@@ -354,7 +354,7 @@ const TransactionsPage = () => {
                 className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 hover:text-green-400 transition-all duration-300 w-full sm:w-auto"
               >
                 <Calendar className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Last Month Spent</span>
+                <span className="hidden sm:inline">Monthly Spent</span>
                 <span className="sm:hidden">Last Month</span>
               </Button>
               <Button
