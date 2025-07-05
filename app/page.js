@@ -13,13 +13,13 @@ import {
   MessageSquare,
   Bot
 } from 'lucide-react';
-
+import { useRouter } from 'next/router';
 const Homepage = () => {
-
+const router=useRouter()
   const navigate=(screen)=>{
     switch(screen){
       case 'track':
-        window.location.href='/track';
+        router.push('/track')
         break;
     }
   }
