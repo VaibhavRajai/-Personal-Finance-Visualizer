@@ -17,11 +17,11 @@ import {
   RefreshCw,
   Eye,
   EyeOff,
-  Download
+  Download,
+  ArrowLeft
 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+
 const Dashboard = () => {
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,6 +35,10 @@ const Dashboard = () => {
     '#F59E0B', '#EC4899', '#6366F1', '#06B6D4', 
     '#F97316', '#6B7280'
   ];
+
+  const handleBackClick = () => {
+    window.location.href = 'https://personal-finance-visualizer-ochre-six.vercel.app/';
+  };
 
   const getIconForCategory = (category) => {
     const iconMap = {
@@ -51,6 +55,7 @@ const Dashboard = () => {
     };
     return iconMap[category] || CreditCard;
   };
+
   const exportToPDF = async () => {
     if (transactions.length === 0) {
       alert('No transactions to export');
@@ -391,8 +396,18 @@ const Dashboard = () => {
       <div className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center h-auto sm:h-16 py-4 sm:py-0 space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-lg sm:text-xl font-bold text-green-400">Financial Dashboard</h1>
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={handleBackClick}
+                variant="outline"
+                className="border-gray-600 text-black-300 hover:bg-green-800"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <div className="flex items-center space-x-2">
+                <h1 className="text-lg sm:text-xl font-bold text-green-400">Financial Dashboard</h1>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button

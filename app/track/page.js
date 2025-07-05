@@ -22,11 +22,13 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowUpCircle,
-  ArrowDownCircle
+  ArrowDownCircle,
+  ArrowLeft
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 const TransactionsPage = () => {
-  const router=useRouter()
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -78,6 +80,7 @@ const TransactionsPage = () => {
     };
     return colorMap[category] || "bg-gray-500";
   };
+
   const getIconForTransaction = (transaction) => {
     if (transaction.type === 'income') {
       return ArrowUpCircle;
@@ -85,6 +88,7 @@ const TransactionsPage = () => {
       return ArrowDownCircle;
     }
   };
+
   const getColorForTransaction = (transaction) => {
     if (transaction.type === 'income') {
       return "bg-green-500";
@@ -170,6 +174,12 @@ const TransactionsPage = () => {
     setMounted(true);
     fetchTransactions();
   }, []);
+
+  // Back button handler
+  const handleGoBack = () => {
+    window.location.href = 'https://personal-finance-visualizer-ochre-six.vercel.app/';
+  };
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -344,7 +354,14 @@ const TransactionsPage = () => {
       <div className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center h-auto sm:h-16 py-4 sm:py-0 space-y-4 sm:space-y-0">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={handleGoBack}
+                variant="ghost"
+                className="text-gray-400 hover:text-white hover:bg-gray-800 p-2 transition-all duration-300"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
               <h1 className="text-lg sm:text-xl font-bold text-green-400">Financial Visualizer</h1>
             </div>
             <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
