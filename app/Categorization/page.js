@@ -27,8 +27,6 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [showAmounts, setShowAmounts] = useState(true);
-
-  // Color palette for charts
   const COLORS = [
     '#10B981', '#3B82F6', '#EF4444', '#8B5CF6', 
     '#F59E0B', '#EC4899', '#6366F1', '#06B6D4', 
@@ -141,13 +139,9 @@ const Dashboard = () => {
       percentage: ((amount / totalExpenses) * 100).toFixed(1)
     }))
     .sort((a, b) => b.value - a.value);
-
-  // Get most recent transactions
   const recentTransactions = transactions
     .sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))
     .slice(0, 5);
-
-  // Monthly spending trend (last 6 months)
   const monthlyData = transactions
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
@@ -196,32 +190,12 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center h-auto sm:h-16 py-4 sm:py-0 space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-2">
               <h1 className="text-lg sm:text-xl font-bold text-green-400">Financial Dashboard</h1>
             </div>
-            {/* <div className="flex items-center space-x-4">
-              <Button
-                onClick={() => setShowAmounts(!showAmounts)}
-                variant="outline"
-                className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-              >
-                {showAmounts ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
-                {showAmounts ? 'Hide' : 'Show'} Amounts
-              </Button>
-              <Button
-                onClick={fetchTransactions}
-                variant="outline"
-                className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-                disabled={isLoading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-            </div> */}
           </div>
         </div>
       </div>
@@ -236,8 +210,6 @@ const Dashboard = () => {
             <p className="text-red-300 text-sm mt-2">{error}</p>
           </div>
         )}
-
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gray-800 border-gray-700">
             <CardContent className="p-6">
@@ -298,9 +270,7 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Category-wise Pie Chart */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white">Expense Breakdown by Category</CardTitle>
@@ -335,8 +305,6 @@ const Dashboard = () => {
               )}
             </CardContent>
           </Card>
-
-          {/* Monthly Spending Trend */}
           <Card className="bg-gray-800 border-gray-700">
             <CardHeader>
               <CardTitle className="text-white">Monthly Spending Trend</CardTitle>
@@ -369,8 +337,6 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Category Summary Cards */}
         <div className="mb-8">
           <h3 className="text-xl font-bold text-white mb-4">Top Spending Categories</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -400,8 +366,6 @@ const Dashboard = () => {
             })}
           </div>
         </div>
-
-        {/* Recent Transactions */}
         <Card className="bg-gray-800 border-gray-700">
           <CardHeader>
             <CardTitle className="text-white">Recent Transactions</CardTitle>
