@@ -24,6 +24,9 @@ const router=useRouter()
           case 'cateogry':
         router.push('/categorization')
         break;
+        case 'chatbot':
+        router.push('/chatBot')
+        break;
     }
   }
   return (
@@ -103,7 +106,7 @@ const router=useRouter()
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer">
+          <Card onClick={()=>{navigate('chatbot')}} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer">
             <CardHeader className="pb-4">
               <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Bot className="w-8 h-8 text-white" />
