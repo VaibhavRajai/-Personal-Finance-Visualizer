@@ -21,8 +21,9 @@ import {
   Save
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
 const TransactionsPage = () => {
-  const router=useRouter()
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [mounted, setMounted] = useState(false);
   const [transactions, setTransactions] = useState([]);
@@ -42,6 +43,19 @@ const TransactionsPage = () => {
     setMounted(true);
     fetchTransactions();
   }, []);
+
+  // Early return if not mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-white">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+  
   const fetchTransactions = async () => {
     try {
       setIsLoadingTransactions(true);
@@ -151,18 +165,17 @@ const TransactionsPage = () => {
   ];
 
   const handleAddTransaction = () => {
-    if (mounted) {
-      router.push( '/addTransaction');
-    }
+    if (!mounted) return;
+    router.push('/addTransaction');
   };
 
   const handleLastMonth = () => {
-    if (mounted) {
-      router.push('/monthly');
-    }
+    if (!mounted) return;
+    router.push('/monthly');
   };
 
   const handleEditTransaction = (transaction) => {
+    if (!mounted) return;
     setEditForm({
       title: transaction.title || '',
       category: transaction.category || '',
@@ -174,6 +187,7 @@ const TransactionsPage = () => {
   };
 
   const handleCloseModal = () => {
+    if (!mounted) return;
     setEditModal({ isOpen: false, transaction: null });
     setEditForm({
       title: '',
@@ -185,6 +199,7 @@ const TransactionsPage = () => {
   };
 
   const handleFormChange = (field, value) => {
+    if (!mounted) return;
     setEditForm(prev => ({
       ...prev,
       [field]: value
@@ -192,7 +207,7 @@ const TransactionsPage = () => {
   };
 
   const handleUpdateTransaction = async () => {
-    if (!editModal.transaction) return;
+    if (!mounted || !editModal.transaction) return;
 
     setIsLoading(true);
     try {
@@ -226,6 +241,8 @@ const TransactionsPage = () => {
   };
 
   const handleDeleteTransaction = async (id) => {
+    if (!mounted) return;
+    
     if (window.confirm('Are you sure you want to delete this transaction?')) {
       setIsLoading(true);
       try {
@@ -334,6 +351,7 @@ const TransactionsPage = () => {
             </Button>
           </div>
         </div>
+        
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
             <div className="flex items-center space-x-2">
@@ -349,6 +367,7 @@ const TransactionsPage = () => {
             </Button>
           </div>
         )}
+        
         {!isLoadingTransactions && !error && (
           <div className="mb-4 p-3 bg-blue-900/30 border border-blue-700 rounded-lg">
             <p className="text-blue-300 text-sm">
@@ -444,6 +463,7 @@ const TransactionsPage = () => {
           </div>
         )}
       </div>
+      
       {editModal.isOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
