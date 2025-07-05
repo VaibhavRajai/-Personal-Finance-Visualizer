@@ -12,7 +12,8 @@ import {
   Target,
   CreditCard,
   Loader2,
-  Sparkles
+  Sparkles,
+  ArrowLeft
 } from 'lucide-react';
 
 export default function FinancialChatbot() {
@@ -39,6 +40,10 @@ export default function FinancialChatbot() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const handleBackClick = () => {
+    window.location.href = 'https://personal-finance-visualizer-ochre-six.vercel.app/';
+  };
 
   const quickSuggestions = [
     {
@@ -208,6 +213,13 @@ Please provide helpful, accurate financial advice while being encouraging and su
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-4">
+              <button
+                onClick={handleBackClick}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-800/50 border border-gray-600/50 rounded-xl text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-200 hover:scale-105"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-sm">Back </span>
+              </button>
               <div className="w-10 h-10 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center">
                 <Bot className="w-6 h-6 text-green-400" />
               </div>
