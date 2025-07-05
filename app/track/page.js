@@ -39,23 +39,55 @@ const TransactionsPage = () => {
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
   const [error, setError] = useState(null);
   
-  useEffect(() => {
-    setMounted(true);
-    fetchTransactions();
-  }, []);
+  const getIconForCategory = (category) => {
+    if (!category) return CreditCard;
+    
+    const iconMap = {
+      "Food & Dining": ShoppingBag,
+      "Income": DollarSign,
+      "Transportation": Car,
+      "Entertainment": Gamepad2,
+      "Utilities": Home,
+      "Shopping": ShoppingBag,
+      "Healthcare": Home,
+      "Education": Home,
+      "Travel": Car,
+      "Other": CreditCard
+    };
+    return iconMap[category] || CreditCard;
+  };
 
-  // Early return if not mounted to prevent hydration issues
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-white">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-  
+  const getColorForCategory = (category) => {
+    if (!category) return "bg-gray-500";
+    
+    const colorMap = {
+      "Food & Dining": "bg-green-500",
+      "Income": "bg-blue-500",
+      "Transportation": "bg-red-500",
+      "Entertainment": "bg-purple-500",
+      "Utilities": "bg-yellow-500",
+      "Shopping": "bg-pink-500",
+      "Healthcare": "bg-indigo-500",
+      "Education": "bg-cyan-500",
+      "Travel": "bg-orange-500",
+      "Other": "bg-gray-500"
+    };
+    return colorMap[category] || "bg-gray-500";
+  };
+
+  const categories = [
+    "Food & Dining",
+    "Transportation",
+    "Entertainment",
+    "Utilities",
+    "Income",
+    "Shopping",
+    "Healthcare",
+    "Education",
+    "Travel",
+    "Other"
+  ];
+
   const fetchTransactions = async () => {
     try {
       setIsLoadingTransactions(true);
@@ -115,54 +147,24 @@ const TransactionsPage = () => {
     }
   };
 
-  const getIconForCategory = (category) => {
-    if (!category) return CreditCard;
-    
-    const iconMap = {
-      "Food & Dining": ShoppingBag,
-      "Income": DollarSign,
-      "Transportation": Car,
-      "Entertainment": Gamepad2,
-      "Utilities": Home,
-      "Shopping": ShoppingBag,
-      "Healthcare": Home,
-      "Education": Home,
-      "Travel": Car,
-      "Other": CreditCard
-    };
-    return iconMap[category] || CreditCard;
-  };
+  useEffect(() => {
+    setMounted(true);
+    fetchTransactions();
+  }, []);
 
-  const getColorForCategory = (category) => {
-    if (!category) return "bg-gray-500";
-    
-    const colorMap = {
-      "Food & Dining": "bg-green-500",
-      "Income": "bg-blue-500",
-      "Transportation": "bg-red-500",
-      "Entertainment": "bg-purple-500",
-      "Utilities": "bg-yellow-500",
-      "Shopping": "bg-pink-500",
-      "Healthcare": "bg-indigo-500",
-      "Education": "bg-cyan-500",
-      "Travel": "bg-orange-500",
-      "Other": "bg-gray-500"
-    };
-    return colorMap[category] || "bg-gray-500";
-  };
+  // Early return if not mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-white">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
-  const categories = [
-    "Food & Dining",
-    "Transportation",
-    "Entertainment",
-    "Utilities",
-    "Income",
-    "Shopping",
-    "Healthcare",
-    "Education",
-    "Travel",
-    "Other"
-  ];
+
 
   const handleAddTransaction = () => {
     if (!mounted) return;
@@ -342,13 +344,13 @@ const TransactionsPage = () => {
                 className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
-            <Button
+            {/* <Button
               variant="outline"
               className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700 w-full sm:w-auto"
             >
               <Filter className="w-4 h-4 mr-2" />
               Filter
-            </Button>
+            </Button> */}
           </div>
         </div>
         
