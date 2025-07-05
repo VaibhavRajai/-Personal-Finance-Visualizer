@@ -27,6 +27,9 @@ const router=useRouter()
         case 'chatbot':
         router.push('/chatBot')
         break;
+          case 'budget':
+        router.push('/budget')
+        break;
     }
   }
   return (
@@ -88,7 +91,7 @@ const router=useRouter()
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer">
+          <Card onClick={()=>{navigate('budget')}} className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer">
             <CardHeader className="pb-4">
               <div className="w-16 h-16 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Target className="w-8 h-8 text-white" />
